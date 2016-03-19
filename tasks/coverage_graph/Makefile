@@ -11,4 +11,4 @@ main.o: main.cpp
 
 .PHONY: clean
 clean:
-	rm -f main.o coverage_graph
+	rm -f main.o coverage_graph plot.{dat,png}
