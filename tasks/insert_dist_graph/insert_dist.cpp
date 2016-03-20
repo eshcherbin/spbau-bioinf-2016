@@ -2,9 +2,10 @@
 #include "stdio.h"
 #include <vector>
 #include <algorithm>
+#include <iostream>
+#include <string>
 
 using namespace std;
-
 int main(int argc, char **argv) { 
     char *fn = argv[1];
     samFile *fp = sam_open(fn, "r");
@@ -17,13 +18,16 @@ int main(int argc, char **argv) {
     bam_hdr_t *sam_hdr = sam_hdr_read(fp);
 
     bam1_t* read = bam_init1();
-    
-    vector<int> reads_dist;
-
+   
+    vector <int> reads_dist;
     while (sam_read1(fp, sam_hdr, read) == 0) {
-       if ((read->core).mpos != 0 && (read->core).mpos >= (read->core).pos) {
-           reads_dist.push_back((read->core).mpos - (read->core).pos);
-       }
+        if ((read->core.flag)&BAM_FMUNMAP || (read->core.flag)&BAM_FUNMAP || (read->core).mpos == 0) {
+	    continue;
+	}
+
+        if ((read->core).pos >= (read->core).mpos) {
+	    reads_dist.push_back((read->core).pos + (read->core).l_qseq - (read->core).mpos);
+	}
     }
 
     sort(reads_dist.begin(), reads_dist.end());
