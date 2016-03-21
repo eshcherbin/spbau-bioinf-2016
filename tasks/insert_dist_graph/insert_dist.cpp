@@ -67,10 +67,10 @@ public:
     }
 
     int getAverage() {
-        int sum = 0;
+        long long int sum = 0;
 	int cnt = 0;
 	for (int i = 0; i < (int)dist_count.size(); ++i) {
-	    sum += dist_count[i] * i * delta;
+	    sum += dist_count[i] * (long long)i * delta;
 	    cnt += dist_count[i];
 	}
 	return sum/cnt;
