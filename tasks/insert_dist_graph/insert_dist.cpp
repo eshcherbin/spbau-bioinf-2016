@@ -14,6 +14,22 @@ private:
     samFile *fp;
     vector <int> reads_dist;
     vector <int> dist_count;
+
+    int getLengthFromCIGAR(bam1_t* read) {
+        int size = 0;
+	uint32_t* CIGAR = bam_get_cigar(read);
+        for (int i = 0; i < (int)((read->core).n_cigar); ++i) {
+	    uint32_t val = *(CIGAR + i);
+	    int op = (int)(val & ((1 << 4) - 1));
+	    int len = (int)(val >> 4);
+	    if (op == 0 || op == 1 || op == 3 || op == 4
+	    || op == 7 || op == 6 || op == 5) {
+	        size += len;
+	    }
+	}
+	return size;
+    }
+
 public:
     InsertDist(char *fn, int _delta = 1) {
         fp = sam_open(fn, "r");
@@ -44,7 +60,12 @@ public:
     }
 
     void printDistCount() {
-        for (int i = 0; i < (int)dist_count.size(); ++i) {
+        int i = 0;
+	while (i < (int)dist_count.size() && dist_count[i] == 0) {
+	    ++i;
+	}
+	if (i > 0) --i;
+        for (; i < (int)dist_count.size(); ++i) {
             printf("%d %d\n", i*delta, dist_count[i]);
         }
     }
