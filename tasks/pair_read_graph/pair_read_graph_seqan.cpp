@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
 	    continue;
 	}
 
-	if (is_rev) {
+	if (!is_rev) {
 	    target_id++;
 	}
 	if (read1_pos.count(read_name)) {
