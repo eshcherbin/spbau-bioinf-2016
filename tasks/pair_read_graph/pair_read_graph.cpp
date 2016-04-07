@@ -17,11 +17,7 @@ map<string, int> read1_pos;
 vector< vector<int> > G;
 
 int pair_target(int x) {
-    if (x & 1) {
-        return x + 1;
-    } else {
-        return x - 1;
-    }
+    return x^1;
 }
 
 int main(int argc, char **argv) {
@@ -64,6 +60,7 @@ int main(int argc, char **argv) {
     }
     sam_close(fp);
 
+ 
     fn = argv[2];
     fp = sam_open(fn, "r");
 
@@ -71,6 +68,7 @@ int main(int argc, char **argv) {
 
     read = bam_init1();
 
+    cout << "digraph graphname {"  << '\n';
     while (sam_read1(fp, sam_hdr, read) == 0) {
         string read_name = string(bam_get_qname(read));
 	bool is_rev = bam_is_rev(read);
@@ -87,8 +85,19 @@ int main(int argc, char **argv) {
 	if (read1_pos.count(read_name) == 0) {
 	    continue;
 	} else {
+            cerr << target_id << " "<<pair_target(target_id) << " " << read1_pos[read_name] << endl;
             G[read1_pos[read_name]].push_back(target_id);
 	    G[pair_target(target_id)].push_back(pair_target(read1_pos[read_name]));
         }
     }
+
+    for (int i = 0; i < 2*len; ++i) {
+        sort(G[i].begin(), G[i].end());
+	G[i].resize(unique(G[i].begin(), G[i].end()) - G[i].begin());
+	for (int j = 0; j < (int)G[i].size(); ++j) {
+	    int v = G[i][j];
+	    cout << i << " --> " << v << ";\n"; 
+	}
+    }
+    cout << "}\n"; 
 }
