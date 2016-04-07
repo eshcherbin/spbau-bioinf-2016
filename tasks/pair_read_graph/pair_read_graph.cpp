@@ -1,103 +1,127 @@
-#include "htslib/sam.h"
-#include "stdio.h"
-#include <vector>
-#include <algorithm>
-#include <iostream>
-#include <string>
-#include <cmath>
-#include <map>
+#include <bits/stdc++.h>
+#include <seqan/bam_io.h>
+#include <seqan/file.h>
+#include <seqan/graph_types.h>
+#include <seqan/graph_algorithms.h>
 
 using namespace std;
+using namespace seqan;
 
-map <string, int> target_id;
-vector<string> target_name; 
+const int DEFAULT_MIN_COUNT = 1000;
 
-map<string, int> read1_pos;
+typedef Graph<Directed < > > DirG;
+typedef VertexDescriptor<DirG>::Type DirVert;
+typedef Iterator<DirG, EdgeIterator>::Type EdgeIt;
 
-vector< vector<int> > G;
+map <CharString, int> target_id;
+vector<CharString> target_name; 
+
+vector<DirVert> vertexById;
+DirG G;
+
+map<CharString, int> read1_pos;
+
+map<pair<DirVert, DirVert>, int> cnt;
 
 int pair_target(int x) {
     return x^1;
 }
 
 int main(int argc, char **argv) {
-    char *fn = argv[1];
 
-    samFile *fp;
-    fp = sam_open(fn, "r");
+    int min_count;
+    if (argc == 4)
+        min_count = atoi(argv[3]);
+    else
+        min_count = DEFAULT_MIN_COUNT;
 
-    bam_hdr_t *sam_hdr = sam_hdr_read(fp);
+    BamFileIn fp(argv[1]);
 
-    int len = sam_hdr->n_targets;
+    BamHeader sam_hdr;
+    readHeader(sam_hdr, fp);
 
-    G.resize(2*len);
+    typedef FormattedFileContext<BamFileIn, void>::Type TBamContext;
+
+    TBamContext const & bamContext = context(fp);
+
+    int len = length(contigNames(bamContext));
+
+    vertexById.resize(2*len);
 
     for (int i = 0; i < len; ++i) {
-        string name = string(sam_hdr->target_name[i]);
+        CharString name = contigNames(bamContext)[i];
 
-	target_name.push_back(name);
-	target_name.push_back(name);
+	    target_name.push_back(name);
+	    target_name.push_back(name);
 
-	target_id[name] = target_name.size() - 2;
+	    target_id[name] = target_name.size() - 2;
+
+	    vertexById[2*i] = addVertex(G);
+        vertexById[2*i + 1] = addVertex(G);
     }
 
-    bam1_t* read = bam_init1();
+    BamAlignmentRecord read; 
 
-    while (sam_read1(fp, sam_hdr, read) == 0) {
-        string read_name = string(bam_get_qname(read));
-	bool is_rev = bam_is_rev(read);
+    while(!atEnd(fp)) {
+        readRecord(read, fp);
 
-	int target_id = 2*(read->core).tid;
+        CharString read_name = read.qName;
+	    bool is_rev = hasFlagRC(read);
+
+	    int target_id = 2*(read.rID);
 	
-	if (target_id < 0) {
-	    continue;
-	}
+      	if (target_id < 0) {
+	        continue;
+    	}
 
-	if (is_rev) {
-	    target_id++;
-	}
-	read1_pos[read_name] = target_id;
+	    if (is_rev) {
+	        target_id++;
+	    }
+	    read1_pos[read_name] = target_id;
     }
-    sam_close(fp);
+    close(fp);
 
- 
-    fn = argv[2];
-    fp = sam_open(fn, "r");
+    open(fp, argv[2]);
 
-    sam_hdr = sam_hdr_read(fp);
+    readHeader(sam_hdr, fp);
 
-    read = bam_init1();
+    while (!atEnd(fp)) {
+        readRecord(read, fp);
 
-    cout << "digraph graphname {"  << '\n';
-    while (sam_read1(fp, sam_hdr, read) == 0) {
-        string read_name = string(bam_get_qname(read));
-	bool is_rev = bam_is_rev(read);
+        CharString read_name = read.qName;
+        bool is_rev = hasFlagRC(read);
 
-	int target_id = 2*(read->core).tid;
-	
-	if (target_id < 0) {
-	    continue;
-	}
+        int target_id = 2*(read.rID);
 
-	if (!is_rev) {
-	    target_id++;
-	}
-	if (read1_pos.count(read_name) == 0) {
-	    continue;
-	} else {
-            cerr << target_id << " "<<pair_target(target_id) << " " << read1_pos[read_name] << endl;
-            G[read1_pos[read_name]].push_back(target_id);
-	    G[pair_target(target_id)].push_back(pair_target(read1_pos[read_name]));
+        if (target_id < 0) {
+            continue;
         }
-    }
 
-    for (int i = 0; i < 2*len; ++i) {
-        sort(G[i].begin(), G[i].end());
-	G[i].resize(unique(G[i].begin(), G[i].end()) - G[i].begin());
-	for (int j = 0; j < (int)G[i].size(); ++j) {
-	    int v = G[i][j];
-	    cout << i << " --> " << v << ";\n"; 
-	}
-    }
-    cout << "}\n"; 
+        if (!is_rev) {
+            target_id++;
+        }
+        if (read1_pos.count(read_name)) {
+            if (read1_pos[read_name] == target_id) {
+                continue;
+            }
+
+            DirVert verF = vertexById[read1_pos[read_name]], verS = vertexById[target_id], 
+                    verRF = vertexById[pair_target(read1_pos[read_name])], verRS = vertexById[pair_target(target_id)];
+
+            cnt[make_pair(verF, verS)]++;
+            cnt[make_pair(verRS, verRF)]++;
+
+            if (cnt[make_pair(verF, verS)] == min_count) {
+                cerr << verF << ' ' << verS << ' ' << verRF << ' ' << verRS << '\n';
+
+                addEdge(G, verF, verS);
+                addEdge(G, verRS, verRF);
+            }
+        }
+    } 
+   
+    std::ofstream dotFile("graph.dot");
+    writeRecords(dotFile, G, DotDrawing());
+    dotFile.close();
+    return 0;
 }
