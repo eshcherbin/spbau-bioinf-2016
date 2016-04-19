@@ -20,6 +20,7 @@ void PairReadGraph::read_header_init() {
   vertexById.resize(2 * len);
 
   CharString name;
+
   for (int i = 0; i < len; ++i) {
     name = contigNames(bamContext)[i];
 
@@ -28,8 +29,16 @@ void PairReadGraph::read_header_init() {
 
     target_id[name] = (int) target_name.size() - 2;
 
-    vertexById[2 * i] = addVertex(G);
-    vertexById[2 * i + 1] = addVertex(G);
+    vertexById[2 * i] = addVertex(g);
+    vertexById[2 * i + 1] = addVertex(g);
+  }
+
+  resizeVertexMap(vmp, g);
+
+  for (int i = 0; i < 2*len; ++i) {
+    String<char> label_text("label = ");
+    append(label_text, target_name[i]);
+    assignProperty(vmp, vertexById[i], label_text);
   }
 }
 
@@ -109,8 +118,8 @@ void PairReadGraph::add_edge_to_graph(CharString read_name, int target_id, int m
     cnt[make_pair(verRS, verRF)]++;
 
     if (cnt[make_pair(verF, verS)] == min_count) {
-      addEdge(G, verF, verS);
-      addEdge(G, verRS, verRF);
+      addEdge(g, verF, verS);
+      addEdge(g, verRS, verRF);
     }
   }
 }
@@ -136,7 +145,7 @@ void PairReadGraph::second_reads(char *file_name, int min_count) {
 
 void PairReadGraph::write_graph() {
   std::ofstream dotFile("graph.dot");
-  writeRecords(dotFile, G, DotDrawing());
+  writeRecords(dotFile, g, vmp, DotDrawing());
   dotFile.close();
 }
 

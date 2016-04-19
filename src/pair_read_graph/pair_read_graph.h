@@ -3,6 +3,7 @@
 
 #include <bits/stdc++.h>
 #include <seqan/bam_io.h>
+#include <seqan/graph_types.h>
 
 using namespace std;
 using namespace seqan;
@@ -11,14 +12,17 @@ class PairReadGraph {
  private:
   static const int DEFAULT_MIN_COUNT = 1000;
 
-  typedef Graph<Directed<>> DirG;
+  typedef unsigned int Wight;
+
+  typedef Graph<Directed<Wight>> DirG;
   typedef VertexDescriptor<DirG>::Type DirVert;
 
   map<CharString, int> target_id;
   vector<CharString> target_name;
+  String<CharString> vmp;
 
   vector<DirVert> vertexById;
-  DirG G;
+  DirG g;
 
   map<CharString, int> read1_pos;
   map<pair<DirVert, DirVert>, int> cnt;
