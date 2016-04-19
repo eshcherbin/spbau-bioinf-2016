@@ -9,7 +9,7 @@ CoverageGraph::CoverageGraph(const char *filename, int step_size)
     bam_context_ = context(bam_file_);
     num_targets = length(contigNames(bam_context_));
     reads_per_base.resize(num_targets);
-    for (int i = 0; i < num_targets; i++)
+    for (int i = 0; i < num_targets; ++i)
         reads_per_base[i].resize(contigLengths(bam_context_)[i]);
 }
 
@@ -38,8 +38,8 @@ void CoverageGraph::ProcessRecord() {
             //if operation consumes query
             if (cigar_operation_query.find(cigar_element.operation) != 
                     string::npos) {
-                for (int j = 0; j < static_cast<int>(cigar_element.count); j++)
-                    reads_per_base[bam_record_.rID].at(pos++)++;
+                for (int j = 0; j < static_cast<int>(cigar_element.count); ++j)
+                    ++reads_per_base[bam_record_.rID].at(pos++);
             }
             else
                 pos += cigar_element.count;
@@ -48,7 +48,7 @@ void CoverageGraph::ProcessRecord() {
 }
 
 void  CoverageGraph::OutputStatistics() {
-    for (int target = 0; target < num_targets; target++) {
+    for (int target = 0; target < num_targets; ++target) {
         string filename = "plot_" + 
             string(toCString(contigNames(bam_context_)[target])) + 
             ".dat";
@@ -61,7 +61,7 @@ void  CoverageGraph::OutputStatistics() {
         double coverage = 0, average_coverage = 0;
 
         // compute statistics
-        for (int i = 0; i < contigLengths(bam_context_)[target]; i++) {
+        for (int i = 0; i < contigLengths(bam_context_)[target]; ++i) {
             if (reads_per_base[target][i] > max_coverage)
                 max_coverage = reads_per_base[target][i];
             average_coverage += reads_per_base[target][i];
@@ -83,7 +83,7 @@ void  CoverageGraph::OutputStatistics() {
                 l += step_size_) {
             int r = min(l + step_size_, contigLengths(bam_context_)[target]);
             double average_coverage_step = 0;
-            for (int i = l; i < r; i++)
+            for (int i = l; i < r; ++i)
                 average_coverage_step += reads_per_base[target][i];
             average_coverage_step /= (r - l);
             data << l << ' ' << fixed << setprecision(5) << 
