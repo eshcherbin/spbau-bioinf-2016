@@ -19,8 +19,9 @@ void PairReadGraph::read_header_init() {
 
   vertexById.resize(2 * len);
 
+  CharString name;
   for (int i = 0; i < len; ++i) {
-    CharString name = contigNames(bamContext)[i];
+    name = contigNames(bamContext)[i];
 
     target_name.push_back(name);
     target_name.push_back(name);
@@ -36,6 +37,13 @@ void PairReadGraph::process_one_first_read(BamAlignmentRecord read) {
   readRecord(read, fp);
 
   CharString read_name = read.qName;
+  if (length(read_name) > 1) {
+    if (read_name[length(read_name) - 2] == '/' &&
+        read_name[length(read_name) - 1] == '1') {
+      resize(read_name, length(read_name) - 2);
+    }
+  }
+
   bool is_rev = hasFlagRC(read);
 
   int target_id = 2 * (read.rID);
@@ -67,6 +75,13 @@ pair<CharString, int> PairReadGraph::process_one_second_read(BamAlignmentRecord 
   readRecord(read, fp);
 
   CharString read_name = read.qName;
+  if (length(read_name) > 1) {
+    if (read_name[length(read_name) - 2] == '/' &&
+        read_name[length(read_name) - 1] == '2') {
+      resize(read_name, length(read_name) - 2);
+    }
+  }
+
   bool is_rev = hasFlagRC(read);
 
   int target_id = 2 * (read.rID);
@@ -101,18 +116,20 @@ void PairReadGraph::add_edge_to_graph(CharString read_name, int target_id, int m
 }
 
 void PairReadGraph::second_reads(char *file_name, int min_count) {
-  BamHeader sam_hdr;
   open(fp, file_name);
 
+  BamHeader sam_hdr;
   readHeader(sam_hdr, fp);
 
   BamAlignmentRecord read;
 
+  pair<CharString, int> read_info;
   while (!atEnd(fp)) {
-    pair<CharString, int> read_info = process_one_second_read(read);
+    read_info = process_one_second_read(read);
     if (read_info.second == -1) {
       continue;
     }
+
     add_edge_to_graph(read_info.first, read_info.second, min_count);
   }
 }
