@@ -71,7 +71,12 @@ void PairReadGraph::process_one_first_read(BamAlignmentRecord read) {
 void PairReadGraph::first_reads(char *file_name) {
   open(fp, file_name);
 
-  read_header_init();
+  if (vertexById.size() == 0) {
+    read_header_init();
+  } else {
+    BamHeader sam_hdr;
+    readHeader(sam_hdr, fp);
+  }
 
   BamAlignmentRecord read;
 
@@ -106,7 +111,7 @@ pair<CharString, int> PairReadGraph::process_one_second_read(BamAlignmentRecord 
   return make_pair(read_name, target_id);
 }
 
-void PairReadGraph::add_edge_to_graph(CharString read_name, int target_id, int min_count) {
+void PairReadGraph::add_edge_to_graph(CharString read_name, int target_id, int min_count, CharString current_color) {
   if (read1_pos.count(read_name)) {
     if (read1_pos[read_name] == target_id || read1_pos[read_name] == pair_target(target_id)) {
       return;
@@ -120,9 +125,9 @@ void PairReadGraph::add_edge_to_graph(CharString read_name, int target_id, int m
 
     if (cnt[make_pair(verF, verS)] == min_count) {
       addEdge(g, verF, verS);
-      appendValue(emp, CharString("color = \"#ff0000\""));
+      appendValue(emp, current_color);
       addEdge(g, verRS, verRF);
-      appendValue(emp, CharString("color = \"#00ff00\""));
+      appendValue(emp, current_color);
     }
   }
 }
@@ -135,6 +140,8 @@ void PairReadGraph::second_reads(char *file_name, int min_count) {
 
   BamAlignmentRecord read;
 
+  CharString color = gen_random_color();
+
   pair<CharString, int> read_info;
   while (!atEnd(fp)) {
     read_info = process_one_second_read(read);
@@ -142,8 +149,9 @@ void PairReadGraph::second_reads(char *file_name, int min_count) {
       continue;
     }
 
-    add_edge_to_graph(read_info.first, read_info.second, min_count);
+    add_edge_to_graph(read_info.first, read_info.second, min_count, color);
   }
+  close(fp);
 }
 
 void PairReadGraph::write_graph() {
@@ -152,25 +160,47 @@ void PairReadGraph::write_graph() {
   dotFile.close();
 }
 
-int PairReadGraph::main(char *file_name1, char *file_name2, int min_count) {
+int PairReadGraph::add_reads_to_graph(char *file_name1, char *file_name2, int min_count) {
   cerr << "START" << endl;
   first_reads(file_name1);
   cerr << "After first reads" << endl;
   second_reads(file_name2, min_count);
   cerr << "After second reads" << endl;
-  write_graph();
-  cerr << "THE END" << endl;
+  read1_pos.clear();
+  cnt.clear();
   return 0;
 }
 
 int main(int argc, char **argv) {
   PairReadGraph prg;
 
-  if (argc == 4) {
-    prg.main(argv[1], argv[2], atoi(argv[3]));
+  int pos = 1;
+
+  while (pos < argc) {
+    prg.add_reads_to_graph(argv[pos], argv[pos + 1], atoi(argv[pos + 2]));
+    pos += 3;
   }
-  else {
-    prg.main(argv[1], argv[2]);
-  }
+
+  prg.write_graph();
   return 0;
+}
+
+CharString PairReadGraph::gen_random_color() {
+  int color[3] = { rand() % 256, rand() % 256, rand() % 256 };
+  string res = "#";
+  for (int i = 0; i < 3; ++i) {
+    if (color[i] / 16 < 10) {
+      res += (color[i] / 16) + '0';
+    } else {
+      res += (color[i] / 16) - 10 + 'a';
+    }
+
+    if (color[i] % 16 < 10) {
+      res += (color[i] % 16) + '0';
+    } else {
+      res += (color[i] % 16) - 10 + 'a';
+    }
+  }
+  res = "color = \"" + res + "\"";
+  return CharString(res);
 }
