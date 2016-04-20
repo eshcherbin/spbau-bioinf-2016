@@ -20,6 +20,7 @@ class PairReadGraph {
   map<CharString, int> target_id;
   vector<CharString> target_name;
   String<CharString> vmp;
+  String<CharString> emp;
 
   vector<DirVert> vertexById;
   DirG g;

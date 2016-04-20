@@ -36,8 +36,9 @@ void PairReadGraph::read_header_init() {
   resizeVertexMap(vmp, g);
 
   for (int i = 0; i < 2*len; ++i) {
-    String<char> label_text("label = ");
+    String<char> label_text("label = \"");
     append(label_text, target_name[i]);
+    append(label_text, "\"");
     assignProperty(vmp, vertexById[i], label_text);
   }
 }
@@ -119,7 +120,9 @@ void PairReadGraph::add_edge_to_graph(CharString read_name, int target_id, int m
 
     if (cnt[make_pair(verF, verS)] == min_count) {
       addEdge(g, verF, verS);
+      appendValue(emp, CharString("color = \"#ff0000\""));
       addEdge(g, verRS, verRF);
+      appendValue(emp, CharString("color = \"#00ff00\""));
     }
   }
 }
@@ -145,7 +148,7 @@ void PairReadGraph::second_reads(char *file_name, int min_count) {
 
 void PairReadGraph::write_graph() {
   std::ofstream dotFile("graph.dot");
-  writeRecords(dotFile, g, vmp, DotDrawing());
+  writeRecords(dotFile, g, vmp, emp, DotDrawing());
   dotFile.close();
 }
 
