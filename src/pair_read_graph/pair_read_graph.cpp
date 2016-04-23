@@ -197,20 +197,6 @@ int PairReadGraph::add_reads_to_graph(char *file_name1, char *file_name2, int mi
   return 0;
 }
 
-int main(int argc, char **argv) {
-  PairReadGraph prg;
-
-  int pos = 1;
-
-  while (pos < argc) {
-    prg.add_reads_to_graph(argv[pos], argv[pos + 1], atoi(argv[pos + 2]));
-    pos += 3;
-  }
-
-  prg.write_graph();
-  return 0;
-}
-
 CharString PairReadGraph::gen_random_color() {
   int color[3] = { rand() % 256, rand() % 256, rand() % 256 };
   string res = "#";
