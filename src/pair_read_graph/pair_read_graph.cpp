@@ -31,15 +31,24 @@ void PairReadGraph::read_header_init() {
 
     vertexById[2 * i] = addVertex(g);
     vertexById[2 * i + 1] = addVertex(g);
-  }
 
-  resizeVertexMap(vmp, g);
 
-  for (int i = 0; i < 2*len; ++i) {
-    String<char> label_text("label = \"");
+    String<char> label_text("label = \" name: ");
     append(label_text, target_name[i]);
+    append(label_text, " len = ");
+    int len = contigLengths(bamContext)[i];
+    append(label_text, to_string(len));
     append(label_text, "\"");
-    assignProperty(vmp, vertexById[i], label_text);
+
+    appendValue(vmp, label_text);
+
+    String<char> label_text2("label = \" name: ");
+    append(label_text2, target_name[i]);
+    append(label_text2, "-rev len = ");
+    append(label_text2, to_string(len));
+    append(label_text2, "\"");
+
+    appendValue(vmp, label_text2);
   }
 }
 
