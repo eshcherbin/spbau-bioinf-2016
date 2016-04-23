@@ -40,13 +40,16 @@ class PairReadGraph {
 
   pair<CharString, int> process_one_second_read(BamAlignmentRecord read);
 
-  void add_edge_to_graph(CharString read_name, int target_id, int min_count, CharString current_color, char* file_name);
+  void inc_edge_weight(CharString read_name, int target_id);
+
+  void add_edges(int min_count, CharString color, char* file_name);
 
   void second_reads(char *file_name, int min_count);
 
   CharString gen_random_color();
 
-  CharString append_lib_name(CharString property, char* lib_name);
+  CharString append_info(CharString property, char *lib_name, int x);
+
  public:
   int add_reads_to_graph(char *file_name1, char *file_name2, int min_count = DEFAULT_MIN_COUNT);
 
