@@ -111,7 +111,14 @@ pair<CharString, int> PairReadGraph::process_one_second_read(BamAlignmentRecord 
   return make_pair(read_name, target_id);
 }
 
-void PairReadGraph::add_edge_to_graph(CharString read_name, int target_id, int min_count, CharString current_color) {
+CharString PairReadGraph::append_lib_name(CharString property, char* lib_name) {
+  CharString lib = " label = \" library:" + string(lib_name) + "\"";
+  append(property, lib);
+  return property;
+}
+
+void PairReadGraph::add_edge_to_graph(CharString read_name, int target_id, int min_count,
+                                      CharString current_color, char* file_name) {
   if (read1_pos.count(read_name)) {
     if (read1_pos[read_name] == target_id || read1_pos[read_name] == pair_target(target_id)) {
       return;
@@ -123,11 +130,12 @@ void PairReadGraph::add_edge_to_graph(CharString read_name, int target_id, int m
     cnt[make_pair(verF, verS)]++;
     cnt[make_pair(verRS, verRF)]++;
 
+    CharString property = append_lib_name(current_color, file_name);
     if (cnt[make_pair(verF, verS)] == min_count) {
       addEdge(g, verF, verS);
-      appendValue(emp, current_color);
+      appendValue(emp, property);
       addEdge(g, verRS, verRF);
-      appendValue(emp, current_color);
+      appendValue(emp, property);
     }
   }
 }
@@ -149,7 +157,7 @@ void PairReadGraph::second_reads(char *file_name, int min_count) {
       continue;
     }
 
-    add_edge_to_graph(read_info.first, read_info.second, min_count, color);
+    add_edge_to_graph(read_info.first, read_info.second, min_count, color, file_name);
   }
   close(fp);
 }
