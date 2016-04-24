@@ -27,6 +27,7 @@ class PairReadGraph {
 
   map<CharString, int> read1_pos;
   map<pair<DirVert, DirVert>, int> cnt;
+  map<int, double> target_coverage;
 
   BamFileIn fp;
 
@@ -52,6 +53,8 @@ class PairReadGraph {
 
  public:
   int add_reads_to_graph(char *file_name1, char *file_name2, int min_count = DEFAULT_MIN_COUNT);
+
+  void appendCoverageToMap();
 
   void write_graph();
 

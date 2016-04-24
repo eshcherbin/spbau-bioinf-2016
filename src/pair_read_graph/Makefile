@@ -17,3 +17,7 @@ pair_read_graph.o: pair_read_graph.cpp pair_read_graph.h
 
 graph.png: graph.dot
 	dot graph.dot -Tpng -o graph.png
+
+.PHONY: clean
+clean:
+	rm -rf *.o pair_read_graph graph.png
