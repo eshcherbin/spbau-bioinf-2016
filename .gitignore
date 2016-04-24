@@ -1,0 +1,6 @@
+*.sam
+*.png
+*.dot
+sandbox/*
+.idea/*
+.ycm_extra_conf.py*
