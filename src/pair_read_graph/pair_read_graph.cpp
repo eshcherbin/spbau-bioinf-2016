@@ -34,7 +34,7 @@ void PairReadGraph::read_header_init() {
 
 
     String<char> label_text("label = \" name: ");
-    append(label_text, target_name[i]);
+    append(label_text, name);
     append(label_text, ", len = ");
     int len = contigLengths(bamContext)[i];
     append(label_text, to_string(len));
@@ -43,7 +43,7 @@ void PairReadGraph::read_header_init() {
     appendValue(vmp, label_text);
 
     String<char> label_text2("label = \" name: ");
-    append(label_text2, target_name[i]);
+    append(label_text2, name);
     append(label_text2, "-rev, len = ");
     append(label_text2, to_string(len));
     append(label_text2, "\"");
@@ -185,8 +185,8 @@ void PairReadGraph::add_edges(int min_count, CharString color, char* file_name) 
    if (cnt[make_pair(verF, verS)] >= min_count) {
      addEdge(g, verF, verS);
      appendValue(emp, property);
-     //addEdge(g, verRS, verRF);
-     //appendValue(emp, property);
+     //addEdge(g, verRS, verRF);   // extra edges
+     //appendValue(emp, property); // needs to be deleted, probably
    }
  }
 }
