@@ -12,15 +12,21 @@ class PairReadGraph {
  private:
   static const int DEFAULT_MIN_CONTIG_LEN = 6000;
   static const int DEFAULT_MIN_COUNT = 1000;
+  const double DEFAULT_DEF = 0.179;
+  const int DEFAULT_MAX_CNT_EDGE = 3;
+
 
   typedef unsigned int Wight;
 
   typedef Graph<Directed<Wight>> DirG;
   typedef VertexDescriptor<DirG>::Type DirVert;
 
-
   vector <pair <int, int> > G[200];
+  int count[200];
+
   map<DirVert, int> vertId;
+
+
 
 
   map<CharString, int> target_id;
@@ -32,12 +38,12 @@ class PairReadGraph {
   DirG g;
 
   map<CharString, int> read1_pos;
-  map<pair<DirVert, DirVert>, int> cnt;
+  vector< unordered_map<int, int> > cnt;
 
-  map<DirVert, int> max_edge;
+  vector<int> max_edge;
 
-  map<int, double> target_coverage;
-  map<DirVert, int> contig_len;
+  vector<double> target_coverage;
+  vector<int> contig_len;
 
   BamFileIn fp;
 

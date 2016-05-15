@@ -18,6 +18,10 @@ void PairReadGraph::read_header_init() {
   size_t len = length(contigNames(bamContext));
 
   vertexById.resize(2 * len);
+  cnt.resize(2 * len);
+  max_edge.resize(2 * len);
+  target_coverage.resize(2 * len);
+  contig_len.resize(2 * len);
 
   CharString name;
 
@@ -47,14 +51,17 @@ void PairReadGraph::read_header_init() {
     String<char> label_text("label = \" name: ");
     append(label_text, name);
     append(label_text, "\n len = ");
-    contig_len[vertexById[2 * i]] = length;
-    contig_len[vertexById[2 * i + 1]] = length;
+
+    contig_len[2 * i] = length;
+    contig_len[2 * i + 1] = length;
+
     append(label_text, to_string(length));
     append(label_text, "\"");
 
     appendValue(vmp, label_text);
 
     String<char> label_text2("label = \" name: ");
+
     append(label_text2, name);
     append(label_text2, "-rev \n len = ");
     append(label_text2, to_string(length));
@@ -109,6 +116,7 @@ void PairReadGraph::first_reads(char *file_name) {
   while (!atEnd(fp)) {
     process_one_first_read(read);
   }
+
   close(fp);
 }
 
@@ -156,13 +164,12 @@ void PairReadGraph::inc_edge_weight(CharString read_name, int target_id) {
       return;
     }
 
-    DirVert verF = vertexById[read1_pos[read_name]], verS = vertexById[target_id],
-        verRF = vertexById[pair_target(read1_pos[read_name])], verRS = vertexById[pair_target(target_id)];
+    int verFID = read1_pos[read_name], verSID = target_id, verRFID = pair_target(verFID), verRSID = pair_target(verSID);
 
-    cnt[make_pair(verF, verS)]++;
-    max_edge[verF] = max(max_edge[verF], cnt[make_pair(verF, verS)]);
-    cnt[make_pair(verRS, verRF)]++;
-    max_edge[verRS] = max(max_edge[verRS], cnt[make_pair(verRS, verRF)]);
+    cnt[verFID][verSID]++;
+    max_edge[verFID] = max(max_edge[verFID], cnt[verFID][verSID]);
+    cnt[verRSID][verRFID]++;
+    max_edge[verRSID] = max(max_edge[verRSID], cnt[verRSID][verRFID]);
   }
 }
 
@@ -192,21 +199,50 @@ void PairReadGraph::second_reads(char *file_name, int min_count) {
 }
 
 void PairReadGraph::add_edges(int min_count, CharString color, char* file_name) {
-  for (map<pair<DirVert, DirVert>, int>::iterator it = cnt.begin(); it != cnt.end(); ++it) {
-    DirVert verF = (*it).first.first, verS = (*it).first.second;
+  for (int v = 0; v < target_name.size(); ++v) {
+    if (target_name[v] == "") {
+      continue;
+    }
 
-    CharString property = append_info(color, file_name, cnt[make_pair(verF, verS)]);
-    if (it->second == max_edge[verF] && contig_len[verF] >= DEFAULT_MIN_CONTIG_LEN
-        && contig_len[verS] >= DEFAULT_MIN_CONTIG_LEN) {
-      addEdge(g, verF, verS);
+    vector< pair<int, int> > edges;
+
+    for (auto it = cnt[v].begin(); it != cnt[v].end(); ++it) {
+      edges.push_back(make_pair(it->second, it->first));
+    }
+
+    sort(edges.begin(), edges.end());
+
+    int cnt = 1;
+
+    int maxVal = 0;
+    if (edges.size() > 0) {
+      maxVal = edges[edges.size() - 1].first;
+    }
+
+    for (int i = (int)edges.size() - 2; i >= 0; --i) {
+      int w0 = edges[i + 1].first, w1 = edges[i].first;
+      if ((w0 - w1) < maxVal * DEFAULT_DEF) {
+        ++cnt;
+      } else {
+        break;
+      }
+    }
+
+    if (cnt > DEFAULT_MAX_CNT_EDGE) {
+      cnt = 0;
+    }
+
+    count[v] = cnt;
+
+    for (int i = (int)edges.size() - 1; i >= (int)edges.size() - cnt; --i) {
+      CharString property = append_info(color, file_name, edges[i].first);
+      addEdge(g, vertexById[v], vertexById[edges[i].second]);
       appendValue(emp, property);
     }
 
-    if ( contig_len[verF] >= DEFAULT_MIN_CONTIG_LEN
-        && contig_len[verS] >= DEFAULT_MIN_CONTIG_LEN) {
-      G[vertId[verF]].push_back(make_pair(it->second, vertId[verS]));
+    for (int i = 0; i < (int)edges.size(); ++i) {
+      G[v].push_back(edges[i]);
     }
-
   }
 }
 
@@ -236,8 +272,12 @@ void PairReadGraph::write_full_graph() {
   for (int i = 0; i < 100; ++i) {
     if (G[i].size() > 0) {
       out << i << " " << target_name[i] << ":\n";
-      sort(G[i].begin(), G[i].end());
-      for (int j = 0; j < (int)G[i].size(); ++j) {
+      sort(G[i].rbegin(), G[i].rend());
+      for (int j = 0; j < (int)count[i]; ++j) {
+        out << "    (" << G[i][j].first << ", " << G[i][j].second << ") \n";
+      }
+      out << "---" << endl;
+      for (int j = count[i]; j < (int)G[i].size(); ++j) {
         out << "    (" << G[i][j].first << ", " << G[i][j].second << ") \n";
       }
     }
@@ -263,7 +303,7 @@ int PairReadGraph::add_reads_to_graph(char *file_name1, char *file_name2, int mi
   second_reads(file_name2, min_count);
   cerr << "After second reads" << endl;
   read1_pos.clear();
-  cnt.clear();
+  cnt.resize(0);
   return 0;
 }
 
