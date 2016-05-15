@@ -212,13 +212,19 @@ void PairReadGraph::add_edges(int min_count, CharString color, char* file_name) 
 
 void PairReadGraph::appendCoverageToMap()
 {
-  for (int target = 0; target < static_cast<int>(length(vmp)); target++)
+  int i = 0;
+  for (int target = 0; target < target_name.size(); target++)
   {
+    if (target_coverage[target] == 0) {
+      continue;
+    }
+
     ostringstream coverage;
     coverage << setprecision(2) << fixed << target_coverage[target];
-    eraseBack(vmp[target]);
-    append(vmp[target], "\n coverage = " +
+    eraseBack(vmp[i]);
+    append(vmp[i], "\n coverage = " +
             coverage.str() + "\"");
+    ++i;
   }
 }
 
