@@ -18,6 +18,11 @@ class PairReadGraph {
   typedef Graph<Directed<Wight>> DirG;
   typedef VertexDescriptor<DirG>::Type DirVert;
 
+
+  vector <pair <int, int> > G[200];
+  map<DirVert, int> vertId;
+
+
   map<CharString, int> target_id;
   vector<CharString> target_name;
   String<CharString> vmp;
@@ -55,6 +60,8 @@ class PairReadGraph {
   CharString gen_random_color();
 
   CharString append_info(CharString property, char *lib_name, int x);
+
+  void write_full_graph();
 
  public:
   int add_reads_to_graph(char *file_name1, char *file_name2, int min_count = DEFAULT_MIN_COUNT);

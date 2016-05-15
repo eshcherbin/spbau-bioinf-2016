@@ -40,6 +40,9 @@ void PairReadGraph::read_header_init() {
     vertexById[2 * i] = addVertex(g);
     vertexById[2 * i + 1] = addVertex(g);
 
+    vertId[vertexById[2 * i]] = 2 * i;
+    vertId[vertexById[2 * i + 1]] = 2 * i + 1;
+
 
     String<char> label_text("label = \" name: ");
     append(label_text, name);
@@ -193,11 +196,17 @@ void PairReadGraph::add_edges(int min_count, CharString color, char* file_name) 
     DirVert verF = (*it).first.first, verS = (*it).first.second;
 
     CharString property = append_info(color, file_name, cnt[make_pair(verF, verS)]);
-    if (cnt[make_pair(verF, verS)] == max_edge[verF] && contig_len[verF] >= DEFAULT_MIN_CONTIG_LEN
+    if (it->second == max_edge[verF] && contig_len[verF] >= DEFAULT_MIN_CONTIG_LEN
         && contig_len[verS] >= DEFAULT_MIN_CONTIG_LEN) {
       addEdge(g, verF, verS);
       appendValue(emp, property);
     }
+
+    if ( contig_len[verF] >= DEFAULT_MIN_CONTIG_LEN
+        && contig_len[verS] >= DEFAULT_MIN_CONTIG_LEN) {
+      G[vertId[verF]].push_back(make_pair(it->second, vertId[verS]));
+    }
+
   }
 }
 
@@ -213,8 +222,28 @@ void PairReadGraph::appendCoverageToMap()
   }
 }
 
+
+void PairReadGraph::write_full_graph() {
+  cerr << "satrt print full graph" << endl;
+  ofstream out("full_graph.out");
+
+  for (int i = 0; i < 100; ++i) {
+    if (G[i].size() > 0) {
+      out << i << " " << target_name[i] << ":\n";
+      sort(G[i].begin(), G[i].end());
+      for (int j = 0; j < (int)G[i].size(); ++j) {
+        out << "    (" << G[i][j].first << ", " << G[i][j].second << ") \n";
+      }
+    }
+  }
+
+  out.close();
+}
+
 void PairReadGraph::write_graph() {
   appendCoverageToMap();
+
+  write_full_graph();
 
   std::ofstream dotFile("graph.dot");
   writeRecords(dotFile, g, vmp, emp, DotDrawing());
