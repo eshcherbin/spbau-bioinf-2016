@@ -10,6 +10,7 @@ using namespace seqan;
 
 class PairReadGraph {
  private:
+  static const int DEFAULT_MIN_CONTIG_LEN = 6000;
   static const int DEFAULT_MIN_COUNT = 1000;
 
   typedef unsigned int Wight;
@@ -27,7 +28,11 @@ class PairReadGraph {
 
   map<CharString, int> read1_pos;
   map<pair<DirVert, DirVert>, int> cnt;
+
+  map<DirVert, int> max_edge;
+
   map<int, double> target_coverage;
+  map<DirVert, int> contig_len;
 
   BamFileIn fp;
 

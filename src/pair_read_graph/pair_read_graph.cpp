@@ -22,6 +22,14 @@ void PairReadGraph::read_header_init() {
   CharString name;
 
   for (int i = 0; i < len; ++i) {
+    int length = contigLengths(bamContext)[i];
+
+    if (length < DEFAULT_MIN_CONTIG_LEN) {
+      target_name.push_back("");
+      target_name.push_back("");
+      continue;
+    }
+
     name = contigNames(bamContext)[i];
 
     target_name.push_back(name);
@@ -35,17 +43,18 @@ void PairReadGraph::read_header_init() {
 
     String<char> label_text("label = \" name: ");
     append(label_text, name);
-    append(label_text, ", len = ");
-    int len = contigLengths(bamContext)[i];
-    append(label_text, to_string(len));
+    append(label_text, "\n len = ");
+    contig_len[vertexById[2 * i]] = length;
+    contig_len[vertexById[2 * i + 1]] = length;
+    append(label_text, to_string(length));
     append(label_text, "\"");
 
     appendValue(vmp, label_text);
 
     String<char> label_text2("label = \" name: ");
     append(label_text2, name);
-    append(label_text2, "-rev, len = ");
-    append(label_text2, to_string(len));
+    append(label_text2, "-rev \n len = ");
+    append(label_text2, to_string(length));
     append(label_text2, "\"");
 
     appendValue(vmp, label_text2);
@@ -67,7 +76,7 @@ void PairReadGraph::process_one_first_read(BamAlignmentRecord read) {
 
   int target_id = 2 * (read.rID);
 
-  if (target_id < 0) {
+  if (target_id < 0 || target_name[target_id] == "") {
     return;
   }
 
@@ -104,6 +113,7 @@ pair<CharString, int> PairReadGraph::process_one_second_read(BamAlignmentRecord 
   readRecord(read, fp);
 
   CharString read_name = read.qName;
+
   if (length(read_name) > 1) {
     if (read_name[length(read_name) - 2] == '/' &&
         read_name[length(read_name) - 1] == '2') {
@@ -115,7 +125,7 @@ pair<CharString, int> PairReadGraph::process_one_second_read(BamAlignmentRecord 
 
   int target_id = 2 * (read.rID);
 
-  if (target_id < 0) {
+  if (target_id < 0 || target_name[target_id] == "") {
     return make_pair("", -1);
   }
 
@@ -132,7 +142,7 @@ pair<CharString, int> PairReadGraph::process_one_second_read(BamAlignmentRecord 
 }
 
 CharString PairReadGraph::append_info(CharString property, char *lib_name, int x) {
-  CharString lib = " label = \" library: " + string(lib_name) + ", weight = " + to_string(x) + "\"";
+  CharString lib = " label = \" library: " + string(lib_name) + "\n weight = " + to_string(x) + "\"";
   append(property, lib);
   return property;
 }
@@ -147,7 +157,9 @@ void PairReadGraph::inc_edge_weight(CharString read_name, int target_id) {
         verRF = vertexById[pair_target(read1_pos[read_name])], verRS = vertexById[pair_target(target_id)];
 
     cnt[make_pair(verF, verS)]++;
+    max_edge[verF] = max(max_edge[verF], cnt[make_pair(verF, verS)]);
     cnt[make_pair(verRS, verRF)]++;
+    max_edge[verRS] = max(max_edge[verRS], cnt[make_pair(verRS, verRF)]);
   }
 }
 
@@ -177,18 +189,16 @@ void PairReadGraph::second_reads(char *file_name, int min_count) {
 }
 
 void PairReadGraph::add_edges(int min_count, CharString color, char* file_name) {
- for (map<pair<DirVert, DirVert>, int>::iterator it = cnt.begin(); it != cnt.end(); ++it) {
-   DirVert verF = (*it).first.first, verS = (*it).first.second;
-   DirVert verRF = vertexById[pair_target((verF))], verRS = vertexById[pair_target((verS))];
+  for (map<pair<DirVert, DirVert>, int>::iterator it = cnt.begin(); it != cnt.end(); ++it) {
+    DirVert verF = (*it).first.first, verS = (*it).first.second;
 
-   CharString property = append_info(color, file_name, cnt[make_pair(verF, verS)]);
-   if (cnt[make_pair(verF, verS)] >= min_count) {
-     addEdge(g, verF, verS);
-     appendValue(emp, property);
-     //addEdge(g, verRS, verRF);   // extra edges
-     //appendValue(emp, property); // needs to be deleted, probably
-   }
- }
+    CharString property = append_info(color, file_name, cnt[make_pair(verF, verS)]);
+    if (cnt[make_pair(verF, verS)] == max_edge[verF] && contig_len[verF] >= DEFAULT_MIN_CONTIG_LEN
+        && contig_len[verS] >= DEFAULT_MIN_CONTIG_LEN) {
+      addEdge(g, verF, verS);
+      appendValue(emp, property);
+    }
+  }
 }
 
 void PairReadGraph::appendCoverageToMap()
@@ -198,7 +208,7 @@ void PairReadGraph::appendCoverageToMap()
     ostringstream coverage;
     coverage << setprecision(2) << fixed << target_coverage[target];
     eraseBack(vmp[target]);
-    append(vmp[target], ", coverage = " + 
+    append(vmp[target], "\n coverage = " +
             coverage.str() + "\"");
   }
 }
