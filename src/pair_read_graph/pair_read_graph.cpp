@@ -174,6 +174,7 @@ void PairReadGraph::inc_edge_weight(CharString read_name, int target_id) {
 }
 
 void PairReadGraph::second_reads(char *file_name, int min_count) {
+  printf("%s\n", file_name);
   open(fp, file_name);
 
   BamHeader sam_hdr;
@@ -184,6 +185,7 @@ void PairReadGraph::second_reads(char *file_name, int min_count) {
   CharString color = gen_random_color();
 
   pair<CharString, int> read_info;
+
   while (!atEnd(fp)) {
     read_info = process_one_second_read(read);
     if (read_info.second == -1) {
@@ -303,7 +305,9 @@ int PairReadGraph::add_reads_to_graph(char *file_name1, char *file_name2, int mi
   second_reads(file_name2, min_count);
   cerr << "After second reads" << endl;
   read1_pos.clear();
-  cnt.resize(0);
+  for (int i = 0; i < (int)cnt.size(); ++i) {
+    cnt[i].clear();
+  }
   return 0;
 }
 

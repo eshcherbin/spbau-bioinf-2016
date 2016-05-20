@@ -9,8 +9,8 @@ int main(int argc, char **argv) {
   int pos = 1;
 
   while (pos < argc) {
-    prg.add_reads_to_graph(argv[pos], argv[pos + 1], atoi(argv[pos + 2]));
-    pos += 3;
+    prg.add_reads_to_graph(argv[pos], argv[pos + 1]);
+    pos += 2;
   }
 
   prg.write_graph();

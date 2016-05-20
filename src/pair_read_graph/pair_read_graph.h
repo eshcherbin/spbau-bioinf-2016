@@ -21,8 +21,8 @@ class PairReadGraph {
   typedef Graph<Directed<Wight>> DirG;
   typedef VertexDescriptor<DirG>::Type DirVert;
 
-  vector <pair <int, int> > G[200];
-  int count[200];
+  vector <pair <int, int> > G[2000];
+  int count[2000];
 
   map<DirVert, int> vertId;
 

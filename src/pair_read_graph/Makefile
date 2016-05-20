@@ -1,5 +1,5 @@
 SHELL=bash
-FLAGS=-O2
+FLAGS=-O2 -g
 
 all: main
 
