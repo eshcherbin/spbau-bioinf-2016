@@ -200,6 +200,33 @@ void PairReadGraph::second_reads(char *file_name, int min_count) {
   close(fp);
 }
 
+int PairReadGraph::cnt_edges_before_break(int v, vector<pair<int, int> > edges) {
+  sort(edges.begin(), edges.end());
+
+  int cnt = 1;
+
+  int maxVal = 0;
+  if (edges.size() > 0) {
+    maxVal = edges[edges.size() - 1].first;
+  }
+
+  for (int i = (int)edges.size() - 2; i >= 0; --i) {
+    int w0 = edges[i + 1].first, w1 = edges[i].first;
+    if ((w0 - w1) < maxVal * DEFAULT_DEF) {
+      ++cnt;
+    } else {
+      break;
+    }
+  }
+
+  if (cnt > DEFAULT_MAX_CNT_EDGE) {
+    cnt = 0;
+  }
+
+  count[v] = cnt;
+  return cnt;
+}
+
 void PairReadGraph::add_edges(int min_count, CharString color, char* file_name) {
   for (int v = 0; v < target_name.size(); ++v) {
     if (target_name[v] == "") {
@@ -212,29 +239,7 @@ void PairReadGraph::add_edges(int min_count, CharString color, char* file_name) 
       edges.push_back(make_pair(it->second, it->first));
     }
 
-    sort(edges.begin(), edges.end());
-
-    int cnt = 1;
-
-    int maxVal = 0;
-    if (edges.size() > 0) {
-      maxVal = edges[edges.size() - 1].first;
-    }
-
-    for (int i = (int)edges.size() - 2; i >= 0; --i) {
-      int w0 = edges[i + 1].first, w1 = edges[i].first;
-      if ((w0 - w1) < maxVal * DEFAULT_DEF) {
-        ++cnt;
-      } else {
-        break;
-      }
-    }
-
-    if (cnt > DEFAULT_MAX_CNT_EDGE) {
-      cnt = 0;
-    }
-
-    count[v] = cnt;
+    int cnt = cnt_edges_before_break(v, edges);
 
     for (int i = (int)edges.size() - 1; i >= (int)edges.size() - cnt; --i) {
       CharString property = append_info(color, file_name, edges[i].first);

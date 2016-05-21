@@ -71,6 +71,8 @@ class PairReadGraph {
   void append_vertex_label(CharString name, int len);
 
   void add_vertex(int i, CharString name, int len);
+
+  int cnt_edges_before_break(int v, vector<pair<int, int> > edges);
  public:
   int add_reads_to_graph(char *file_name1, char *file_name2, int min_count = DEFAULT_MIN_COUNT);
 
