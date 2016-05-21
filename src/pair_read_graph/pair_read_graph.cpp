@@ -7,24 +7,51 @@ int PairReadGraph::pair_target(int x) {
   return x ^ 1;
 }
 
+void PairReadGraph::resize_vectors_on_init(size_t len) {
+  vertexById.resize(len);
+  cnt.resize(len);
+  max_edge.resize(len);
+  target_coverage.resize(len);
+  contig_len.resize(len);
+}
+
+void PairReadGraph::append_vertex_label(CharString name, int len) {
+  String<char> label_text("label = \" name: ");
+  append(label_text, name);
+  append(label_text, "\n len = ");
+  append(label_text, to_string(len));
+  append(label_text, "\"");
+
+  appendValue(vmp, label_text);
+}
+
+void PairReadGraph::add_vertex(int i, CharString name, int len) {
+  target_name.push_back(name);
+  target_name.push_back(name);
+
+  target_id[name] = (int) target_name.size() - 2;
+
+  vertexById[2 * i] = addVertex(g);
+  vertexById[2 * i + 1] = addVertex(g);
+
+  vertId[vertexById[2 * i]] = 2 * i;
+  vertId[vertexById[2 * i + 1]] = 2 * i + 1;
+
+  contig_len[2 * i] = len;
+  contig_len[2 * i + 1] = len;
+}
+
 void PairReadGraph::read_header_init() {
   BamHeader sam_hdr;
   readHeader(sam_hdr, fp);
 
   typedef FormattedFileContext<BamFileIn, void>::Type TBamContext;
-
   TBamContext const &bamContext = context(fp);
 
   size_t len = length(contigNames(bamContext));
-
-  vertexById.resize(2 * len);
-  cnt.resize(2 * len);
-  max_edge.resize(2 * len);
-  target_coverage.resize(2 * len);
-  contig_len.resize(2 * len);
+  resize_vectors_on_init(2 * len);
 
   CharString name;
-
   for (int i = 0; i < len; ++i) {
     int length = contigLengths(bamContext)[i];
 
@@ -36,38 +63,11 @@ void PairReadGraph::read_header_init() {
 
     name = contigNames(bamContext)[i];
 
-    target_name.push_back(name);
-    target_name.push_back(name);
+    add_vertex(i, name, length);
 
-    target_id[name] = (int) target_name.size() - 2;
-
-    vertexById[2 * i] = addVertex(g);
-    vertexById[2 * i + 1] = addVertex(g);
-
-    vertId[vertexById[2 * i]] = 2 * i;
-    vertId[vertexById[2 * i + 1]] = 2 * i + 1;
-
-
-    String<char> label_text("label = \" name: ");
-    append(label_text, name);
-    append(label_text, "\n len = ");
-
-    contig_len[2 * i] = length;
-    contig_len[2 * i + 1] = length;
-
-    append(label_text, to_string(length));
-    append(label_text, "\"");
-
-    appendValue(vmp, label_text);
-
-    String<char> label_text2("label = \" name: ");
-
-    append(label_text2, name);
-    append(label_text2, "-rev \n len = ");
-    append(label_text2, to_string(length));
-    append(label_text2, "\"");
-
-    appendValue(vmp, label_text2);
+    append_vertex_label(name, length);
+    append(name,"-rev");
+    append_vertex_label(name, length);
   }
 }
 

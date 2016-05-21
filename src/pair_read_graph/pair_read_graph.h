@@ -26,9 +26,6 @@ class PairReadGraph {
 
   map<DirVert, int> vertId;
 
-
-
-
   map<CharString, int> target_id;
   vector<CharString> target_name;
   String<CharString> vmp;
@@ -69,6 +66,11 @@ class PairReadGraph {
 
   void write_full_graph();
 
+  void resize_vectors_on_init(size_t len);
+
+  void append_vertex_label(CharString name, int len);
+
+  void add_vertex(int i, CharString name, int len);
  public:
   int add_reads_to_graph(char *file_name1, char *file_name2, int min_count = DEFAULT_MIN_COUNT);
 
