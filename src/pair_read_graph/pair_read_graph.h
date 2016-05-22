@@ -15,32 +15,33 @@ class PairReadGraph {
   const double DEFAULT_DEF = 0.179;
   const int DEFAULT_MAX_CNT_EDGE = 3;
 
-
   typedef unsigned int Wight;
 
   typedef Graph<Directed<Wight>> DirG;
   typedef VertexDescriptor<DirG>::Type DirVert;
 
-  vector <pair <int, int> > G[2000];
-  int count[2000];
+  vector <vector <pair <int, int> > > G;
+  vector<int> count;
+
+  int average_dist;
 
   map<DirVert, int> vertId;
 
   map<CharString, int> target_id;
   vector<CharString> target_name;
+  vector<double> target_coverage;
+  vector<int> target_len;
+
   String<CharString> vmp;
   String<CharString> emp;
 
   vector<DirVert> vertexById;
   DirG g;
 
-  map<CharString, int> read1_pos;
+  map<CharString, int> read1_target;
+  map<CharString, int> read1_dist_to_end;
+  map<CharString, int> read2_dist_to_end;
   vector< unordered_map<int, int> > cnt;
-
-  vector<int> max_edge;
-
-  vector<double> target_coverage;
-  vector<int> contig_len;
 
   BamFileIn fp;
 
@@ -50,7 +51,7 @@ class PairReadGraph {
 
   void process_one_first_read(BamAlignmentRecord read);
 
-  void first_reads(char *file_name);
+  void first_reads(char *file_name, int dist);
 
   pair<CharString, int> process_one_second_read(BamAlignmentRecord read);
 
@@ -73,8 +74,13 @@ class PairReadGraph {
   void add_vertex(int i, CharString name, int len);
 
   int cnt_edges_before_break(int v, vector<pair<int, int> > edges);
+
+  void init_average_dist(int dist);
+
+  int read_dist(BamAlignmentRecord read);
+
  public:
-  int add_reads_to_graph(char *file_name1, char *file_name2, int min_count = DEFAULT_MIN_COUNT);
+  int add_reads_to_graph(char *file_name1, char *file_name2, int min_count, int dist);
 
   void appendCoverageToMap();
 
