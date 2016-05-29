@@ -97,9 +97,7 @@ void PairReadGraph::process_one_first_read(BamAlignmentRecord read) {
     }
   }
 
-
   assert(read1_target.count(read_name) == 0);
-  assert(read.rNextId == -1);
 
   bool is_rev = hasFlagRC(read);
 
@@ -198,16 +196,13 @@ void PairReadGraph::inc_edge_weight(CharString read_name, int target_id) {
   }
 }
 
-void PairReadGraph::second_reads(char *file_name, int min_count) {
-  printf("%s\n", file_name);
+void PairReadGraph::second_reads(char *file_name) {
   open(fp, file_name);
 
   BamHeader sam_hdr;
   readHeader(sam_hdr, fp);
 
   BamAlignmentRecord read;
-
-  CharString color = gen_random_color();
 
   pair<CharString, int> read_info;
 
@@ -219,8 +214,6 @@ void PairReadGraph::second_reads(char *file_name, int min_count) {
 
     inc_edge_weight(read_info.first, read_info.second);
   }
-
-  add_edges(min_count, color, file_name);
 
   close(fp);
 }
@@ -250,7 +243,9 @@ int PairReadGraph::cnt_edges_before_break(int v, vector<pair<int, int> > edges) 
   return cnt;
 }
 
-void PairReadGraph::add_edges(int min_count, CharString color, char* file_name) {
+void PairReadGraph::add_edges(int min_count, char* file_name) {
+  CharString color = gen_random_color();
+
   for (int v = 0; v < target_name.size(); ++v) {
     if (target_name[v] == "") {
       continue;
@@ -331,12 +326,44 @@ void PairReadGraph::write_graph() {
   dotFile.close();
 }
 
-int PairReadGraph::add_reads_to_graph(char *file_name1, char *file_name2, int min_count, int dist) {
+void PairReadGraph::read_and_filter_reads(char *file_name1, char *file_name2, int dist) {
   cerr << "START" << endl;
   first_reads(file_name1, dist);
   cerr << "After first reads" << endl;
-  second_reads(file_name2, min_count);
+  second_reads(file_name2);
   cerr << "After second reads" << endl;
+}
+
+void PairReadGraph::histogram(const char *file_out_name) {
+  ofstream out(file_out_name);
+
+  int max_cnt = 0;
+
+  for (int v = 0; v < cnt.size(); ++v) {
+    for (auto it = cnt[v].begin(); it != cnt[v].end(); ++it) {
+      max_cnt = max(max_cnt, it->second);
+    }
+  }
+
+  vector<int> histogram(max_cnt + 1);
+
+  for (int v = 0; v < cnt.size(); ++v) {
+    for (auto it = cnt[v].begin(); it != cnt[v].end(); ++it) {
+      histogram[it->second]++;
+    }
+  }
+
+  for (int i = 0; i <= max_cnt; ++i) {
+    if (histogram[i] != 0) {
+      out << i << " " << histogram[i] << "\n";
+    }
+  }
+
+  out.close();
+}
+
+int PairReadGraph::add_reads_to_graph(char *file_name, int min_count) {
+  add_edges(min_count, file_name);
   read1_target.clear();
   for (int i = 0; i < (int)cnt.size(); ++i) {
     cnt[i].clear();

@@ -20,10 +20,10 @@ class PairReadGraph {
   typedef Graph<Directed<Wight>> DirG;
   typedef VertexDescriptor<DirG>::Type DirVert;
 
-  vector <vector <pair <int, int> > > G;
-  vector<int> count;
+  vector <vector <pair <int, int> > > G; //all edges in full graph
+  vector<int> count; //count of edges from vertex i in result graph.
 
-  int average_dist;
+  int average_dist; //if distance between reads more that average_dist we don't take it in our graph.
 
   map<DirVert, int> vertId;
 
@@ -41,7 +41,7 @@ class PairReadGraph {
   map<CharString, int> read1_target;
   map<CharString, int> read1_dist_to_end;
   map<CharString, int> read2_dist_to_end;
-  vector< unordered_map<int, int> > cnt;
+  vector< unordered_map<int, int> > cnt; //cnount of edges between two target.
 
   BamFileIn fp;
 
@@ -57,9 +57,9 @@ class PairReadGraph {
 
   void inc_edge_weight(CharString read_name, int target_id);
 
-  void add_edges(int min_count, CharString color, char* file_name);
+  void add_edges(int min_count, char* file_name);
 
-  void second_reads(char *file_name, int min_count);
+  void second_reads(char *file_name); //read and handling second reads.
 
   CharString gen_random_color();
 
@@ -80,12 +80,15 @@ class PairReadGraph {
   int read_dist(BamAlignmentRecord read);
 
  public:
-  int add_reads_to_graph(char *file_name1, char *file_name2, int min_count, int dist);
+  int add_reads_to_graph(char *file_name, int min_count);
 
   void appendCoverageToMap();
 
   void write_graph();
 
+  void read_and_filter_reads(char *file_name1, char *file_name2, int dist);
+
+  void histogram(const char *file_out_name);
   PairReadGraph() { }
 };
 
