@@ -10,12 +10,18 @@ using namespace seqan;
 
 class PairReadGraph {
  private:
+  static const int DEFAULT_MIN_CONTIG_LEN = 6000;
   static const int DEFAULT_MIN_COUNT = 1000;
 
   typedef unsigned int Wight;
 
   typedef Graph<Directed<Wight>> DirG;
   typedef VertexDescriptor<DirG>::Type DirVert;
+
+
+  vector <pair <int, int> > G[200];
+  map<DirVert, int> vertId;
+
 
   map<CharString, int> target_id;
   vector<CharString> target_name;
@@ -27,7 +33,11 @@ class PairReadGraph {
 
   map<CharString, int> read1_pos;
   map<pair<DirVert, DirVert>, int> cnt;
+
+  map<DirVert, int> max_edge;
+
   map<int, double> target_coverage;
+  map<DirVert, int> contig_len;
 
   BamFileIn fp;
 
@@ -50,6 +60,8 @@ class PairReadGraph {
   CharString gen_random_color();
 
   CharString append_info(CharString property, char *lib_name, int x);
+
+  void write_full_graph();
 
  public:
   int add_reads_to_graph(char *file_name1, char *file_name2, int min_count = DEFAULT_MIN_COUNT);
