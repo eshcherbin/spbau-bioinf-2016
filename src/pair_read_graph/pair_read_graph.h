@@ -25,6 +25,8 @@ class PairReadGraph {
 
   int average_dist; //if distance between reads more that average_dist we don't take it in our graph.
 
+  int min_contig_len = DEFAULT_MIN_CONTIG_LEN;
+
   map<DirVert, int> vertId;
 
   map<CharString, int> target_id;
@@ -80,6 +82,8 @@ class PairReadGraph {
   int read_dist(BamAlignmentRecord read);
 
  public:
+  void setMin_contig_len(int min_contig_len);
+
   int add_reads_to_graph(char *file_name, int min_count);
 
   void appendCoverageToMap();

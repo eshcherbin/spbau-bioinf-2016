@@ -61,7 +61,7 @@ void PairReadGraph::read_header_init() {
   for (int i = 0; i < len; ++i) {
     int length = contigLengths(bamContext)[i];
 
-    if (length < DEFAULT_MIN_CONTIG_LEN) {
+    if (length < min_contig_len) {
       target_name.push_back("");
       target_name.push_back("");
       continue;
@@ -110,6 +110,7 @@ void PairReadGraph::process_one_first_read(BamAlignmentRecord read) {
   if (is_rev) {
     target_id++;
   }
+
   read1_target[read_name] = target_id;
   read1_dist_to_end[read_name] = read_dist(read);
 
@@ -257,8 +258,13 @@ void PairReadGraph::add_edges(int min_count, char* file_name) {
       edges.push_back(make_pair(it->second, it->first));
     }
 
+    if (edges.size() == 0) {
+      continue;
+    }
+
     sort(edges.begin(), edges.end());
     int cnt = cnt_edges_before_break(v, edges);
+
 
     for (int i = (int)edges.size() - 1; i >= (int)edges.size() - cnt; --i) {
 
@@ -345,7 +351,7 @@ void PairReadGraph::histogram(const char *file_out_name) {
     }
   }
 
-  vector<int> histogram(max_cnt + 1);
+  vector<int> histogram((unsigned long) (max_cnt + 1));
 
   for (int v = 0; v < cnt.size(); ++v) {
     for (auto it = cnt[v].begin(); it != cnt[v].end(); ++it) {
@@ -389,4 +395,9 @@ CharString PairReadGraph::gen_random_color() {
   }
   res = "color = \"" + res + "\"";
   return CharString(res);
+}
+
+
+void PairReadGraph::setMin_contig_len(int min_contig_len) {
+  this->min_contig_len = min_contig_len;
 }
