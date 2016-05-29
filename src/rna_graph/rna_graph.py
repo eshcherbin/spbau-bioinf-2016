@@ -11,7 +11,7 @@ DEFAULT_MIN_IDY = 0
 DEFAULT_MIN_ALIGNMENT_LEN = 0
 DEFAULT_MIN_REFERENCE_LEN = 0
 
-COLOR_RANDOM_SEED = 117117117  # to make the same colors for different runs
+COLOR_RANDOM_SEED = 117  # to make the same colors for different runs
 
 
 def get_random_color():
@@ -77,7 +77,6 @@ class RnaGraphBuilder:
                               key=len)))
         print('\n'.join(sorted(list(sorted(networkx.weakly_connected_components(self.graph), key=len,
                      reverse=True))[0])))
-        print(networkx.dag_longest_path_length(self.graph))
         return self
 
     def _add_reference(self, record):
