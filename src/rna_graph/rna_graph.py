@@ -2,7 +2,7 @@
 import random
 import argparse
 from collections import Counter
-import networkx
+import networkx as nx
 from alignment import AlignmentRecord
 
 
@@ -11,7 +11,7 @@ DEFAULT_MIN_IDY = 0
 DEFAULT_MIN_ALIGNMENT_LEN = 0
 DEFAULT_MIN_REFERENCE_LEN = 0
 
-COLOR_RANDOM_SEED = 117117117  # to make the same colors for different runs
+COLOR_RANDOM_SEED = 117  # to make the same colors for different runs
 
 
 def get_random_color():
@@ -32,7 +32,7 @@ class RnaGraphBuilder:
     def build(self, coords_file, min_idy, min_alignment_len,
               min_reference_len):
         self.ref_lengths = dict()
-        self.graph = networkx.DiGraph()
+        self.graph = nx.DiGraph()
         self.weights = Counter()
         with open(coords_file) as coords_file:
             one_query_records = []
@@ -62,22 +62,19 @@ class RnaGraphBuilder:
         return self
 
     def save(self, filename):
-        vertices = list(sorted(networkx.weakly_connected_components(self.graph), key=len,
-                     reverse=True))[0]
-        output_graph = networkx.DiGraph()
-        output_graph.add_nodes_from([(node, data) for node, data in self.graph.nodes(data=True) if node in vertices])
-        output_graph.add_edges_from([(src, dest, data) for src, dest, data in self.graph.edges(data=True) if src in vertices and dest in vertices])
-        networkx.drawing.nx_pydot.write_dot(output_graph, filename)
-        return self
-
-    def analyze(self):
-        print(len(max(networkx.strongly_connected_components(self.graph))))
-        print(' '.join(str(len(wcc)) for wcc in
-                       sorted(networkx.weakly_connected_components(self.graph),
-                              key=len)))
-        print('\n'.join(sorted(list(sorted(networkx.weakly_connected_components(self.graph), key=len,
-                     reverse=True))[0])))
-        print(networkx.dag_longest_path_length(self.graph))
+        # output the biggest weakly connected components
+        vertices = list(sorted(nx.weakly_connected_components(self.graph),
+                               key=len, reverse=True))[0]
+        output_graph = nx.DiGraph()
+        output_graph.add_nodes_from([(node, data)
+                                     for node, data
+                                     in self.graph.nodes(data=True)
+                                     if node in vertices])
+        output_graph.add_edges_from([(src, dest, data)
+                                     for src, dest, data
+                                     in self.graph.edges(data=True)
+                                     if src in vertices and dest in vertices])
+        nx.drawing.nx_pydot.write_dot(output_graph, filename)
         return self
 
     def _add_reference(self, record):
@@ -118,7 +115,7 @@ def main():
     args = parser.parse_args()
     RnaGraphBuilder().build(args.coords_file, args.min_idy,
                             args.min_alignment_len, args.min_reference_len)\
-        .save(args.dot_filename).analyze()
+        .save(args.dot_filename)
 
 
 if __name__ == '__main__':
