@@ -18,6 +18,7 @@ int main(int argc, char **argv) {
   if (argv[1][0] == 'G') {
 
     while (pos < argc) {
+      cerr << pos << " " << argc << endl;
       prg.setMin_contig_len(atoi(argv[pos + 4]));
       prg.read_and_filter_reads(argv[pos], argv[pos + 1], atoi(argv[pos + 3]));
       prg.add_reads_to_graph(argv[pos], atoi(argv[pos + 2]));

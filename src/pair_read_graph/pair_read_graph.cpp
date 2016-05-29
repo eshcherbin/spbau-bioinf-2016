@@ -304,7 +304,7 @@ void PairReadGraph::write_full_graph() {
     cerr << "satrt print full graph" << endl;
     ofstream out("full_graph.out");
 
-    for (int i = 0; i < 100; ++i) {
+    for (int i = 0; i < G.size(); ++i) {
         if (G[i].size() > 0) {
             out << i << " " << target_name[i] << ":\n";
             sort(G[i].rbegin(), G[i].rend());
