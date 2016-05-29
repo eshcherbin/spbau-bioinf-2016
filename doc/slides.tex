@@ -1,0 +1,121 @@
+\documentclass{beamer}
+
+\usepackage{polyglossia}
+\usepackage{fontspec}
+\usepackage{nameref}
+\usepackage{ifthen}
+
+\usefonttheme{professionalfonts}
+\usetheme{Antibes}
+\useoutertheme{infolines_foot}
+\setbeamercovered{transparent=20}
+
+\usepackage[math-style=ISO,vargreek-shape=unicode]{unicode-math}
+
+\setdefaultlanguage[spelling=modern,babelshorthands=true]{russian}
+\setotherlanguage{english}
+
+\defaultfontfeatures{Ligatures={TeX}}
+\setmainfont{CMU Serif}
+\setsansfont{CMU Sans Serif}
+\setmonofont{CMU Typewriter Text}
+\setmathfont{Latin Modern Math}
+\AtBeginDocument{\renewcommand{\setminus}{\mathbin{\backslash}}}
+
+\makeatletter
+\newcommand*{\currentname}{\@currentlabelname}
+\makeatother
+\def\t{\texttt}
+
+\newcommand{\cimg}[2]{%
+	\begin{center}%
+		\ifthenelse{\equal{#2}{}}{%
+			\includegraphics[width=0.75\linewidth]{#1}
+		}{%
+			\includegraphics[width=#2\linewidth]{#1}
+		}%
+	\end{center}%
+}
+
+\title[Граф по ридам ДНК/РНК]{Построение графа связей геномных последовательностей по ридам ДНК/РНК}
+\author{Черникова Ольга, Щербин Егор}
+\institute{СПб АУ РАН}
+\date{Весна 2016}
+
+\begin{document}
+
+\begin{frame}
+	\titlepage
+\end{frame}
+
+\section{Постановка задачи}
+
+\begin{frame}[t]{Проблема сборки генома}
+    \begin{itemize}
+    \item
+        Одной из задач биоинформатики является задача сборки генома.
+    \item
+        Специальная программа (ассемблер) собирает геном организма по коротким
+        его участкам (ридам).
+    \item
+        К сожалению, собрать геном полностью не получается. Вместо этого
+        ассемблер выдаёт несколько достаточно больших его частей.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}[t]{Цель проекта}
+    \begin{itemize}
+    \item
+        Наша задача "--- установить относительный порядок между этими частями.
+    \item
+        А именно, построить ориентированный граф, такой что если данные 
+        указывают, что одна из них идёт перед второй, то проведём между ними 
+        ребро.
+    \end{itemize}
+    %TODO: вставить картинку с большим графом
+\end{frame}
+
+\begin{frame}[t]{Подзадачи}
+	\begin{enumerate}
+    \item
+        
+	\end{enumerate}
+\end{frame}
+
+\section{Реализация}
+\subsection{ДНК}
+
+\begin{frame}[t]{Парные риды}
+\end{frame}
+
+\begin{frame}[t]{Отсечка}
+\end{frame}
+
+\subsection{РНК}
+
+\begin{frame}[t]{Интроны и экзоны}
+\end{frame}
+
+\begin{frame}[t]{Проблема с частичным выравниванием}
+\end{frame}
+
+\begin{frame}[t]{Фильтрация}
+\end{frame}
+
+\section{Итоги}
+\begin{frame}[t]{Что получилось}
+\end{frame}
+
+\begin{frame}[t]{Чему мы научились}
+\end{frame}
+
+\begin{frame}[t]{Что не успели}
+\end{frame}
+
+\section{Спасибо за внимание}
+\begin{frame}{Спасибо за внимание}
+    \begin{center}
+        Репозиторий: \\ \url{https://github.com/eshcherbin/spbau-bioinf-2016}
+    \end{center}
+\end{frame}
+\end{document}
