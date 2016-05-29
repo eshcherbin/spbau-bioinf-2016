@@ -1,5 +1,5 @@
 SHELL=bash
-FLAGS=-O2 -g -DEBUG
+FLAGS=-O2
 
 all: main
 
