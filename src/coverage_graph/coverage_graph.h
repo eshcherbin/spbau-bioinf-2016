@@ -15,10 +15,10 @@ public:
 
     void BuildGraph();
 private:
+    typedef FormattedFileContext<BamFileIn, void>::Type TBamContext;
+
     void ProcessRecord();
     void OutputStatistics();
-
-    typedef FormattedFileContext<BamFileIn, void>::Type TBamContext;
 
     int step_size_;
     BamFileIn bam_file_;
